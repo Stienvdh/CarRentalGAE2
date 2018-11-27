@@ -1,4 +1,4 @@
-<!-- Footer -->	
+	
 		</div> <!-- end of #contentWrapper -->
 	</div>
 </body>
