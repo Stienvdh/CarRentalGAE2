@@ -39,15 +39,12 @@ public class CarRentalModel {
 	 * 			in the given car rental company.
 	 */
 	public Set<String> getCarTypesNames(String crcName) {
-		Set<String> out = new HashSet<String>();
-		
-		EntityManager manager = EMF.get().createEntityManager();
-		try {
-			out = new HashSet<String>(manager.createNamedQuery("getCarTypeNamesOfCompany").setParameter("name", crcName).getResultList());
+		Set<String> result = new HashSet<String>();
+		Collection<CarType> carTypes = getCarTypesOfCarRentalCompany(crcName);
+		for (CarType type: carTypes) {
+			result.add(type.getName());
 		}
-		finally {manager.close();}
-    	
-    	return out;
+		return result;
 	}
 
     /**
