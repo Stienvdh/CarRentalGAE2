@@ -31,13 +31,7 @@ public class PersistTestServlet extends HttpServlet {
 			boolean fullApplicationDeployed = new File(getServletContext().getRealPath(JSPSite.CREATE_QUOTES.url())).exists();
 			
 			if (CarRentalModel.get().getReservations(userName).size() == 0 && !fullApplicationDeployed) {
-
-				ReservationConstraints c = new ReservationConstraints(
-						ViewTools.DATE_FORMAT.parse("01.02.2011"), 
-						ViewTools.DATE_FORMAT.parse("01.03.2011"), "Compact");
-			
-				final Quote q = CarRentalModel.get().createQuote(companyName, userName, c);
-				CarRentalModel.get().confirmQuote(q);
+				createSampleReservation(companyName, userName);
 			}
 			
 			resp.sendRedirect(JSPSite.PERSIST_TEST.url());
@@ -47,4 +41,14 @@ public class PersistTestServlet extends HttpServlet {
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ViewTools.stacktraceToHTMLString(e));			
 		}
 	}
+	
+	private void createSampleReservation(String companyName, String userName) throws ParseException, ReservationException {
+		ReservationConstraints c = new ReservationConstraints(
+						ViewTools.DATE_FORMAT.parse("01.02.2011"), 
+						ViewTools.DATE_FORMAT.parse("01.03.2011"), "Compact");
+			
+		final Quote q = CarRentalModel.get().createQuote(companyName, userName, c);
+		CarRentalModel.get().confirmQuote(q);
+	}
+	
 }
