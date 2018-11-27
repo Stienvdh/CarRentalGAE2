@@ -3,22 +3,23 @@ package ds.gae.entities;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+
+import com.google.appengine.api.datastore.Key;
 
 import ds.gae.ReservationException;
 
@@ -36,6 +37,15 @@ import ds.gae.ReservationException;
 	@NamedQuery(
 			name = "getCarTypesOfCompany",
 			query = "SELECT DISTINCT company.carTypes FROM CarRentalCompany company WHERE company.name = :name"
+	),
+	
+	@NamedQuery(
+			name = "getCarsOfCompany",
+			query = "SELECT DISTINCT company.cars FROM CarRentalCompany company WHERE company.name = :name"
+	),
+	@NamedQuery(
+			name = "findCrc",
+			query = "SELECT company FROM CarRentalCompany company WHERE company.name = :name"
 	)
 })
 
@@ -44,7 +54,8 @@ public class CarRentalCompany implements Serializable {
 
 	private static Logger logger = Logger.getLogger(CarRentalCompany.class.getName());
 	
-	@Id private String name;
+	@Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Key key;
+	private String name;
 	@OneToMany(cascade=CascadeType.ALL) private Set<Car> cars = new HashSet<Car>();
 	@OneToMany(cascade=CascadeType.ALL) private Set<CarType> carTypes = new HashSet<CarType>();
 
@@ -58,7 +69,6 @@ public class CarRentalCompany implements Serializable {
 		logger.log(Level.INFO, "<{0}> Car Rental Company {0} starting up...", name);
 		setName(name);
 		for(Car car : cars) {
-			System.out.println(car.getType());
 			this.cars.add(car);
 		}
 		for(CarType type : types)
@@ -83,7 +93,6 @@ public class CarRentalCompany implements Serializable {
 	
 	public CarType getTypeOf(Car car) {
 		for (CarType type : carTypes) {
-			System.out.println("CAR TE ONDERWOEKN HEEFT TYPE: " + car.getType());
 			if (car.getType().equals(type.getId())) {return type;}
 		}
 		throw new IllegalArgumentException("No car type for given car was found");
@@ -179,7 +188,6 @@ public class CarRentalCompany implements Serializable {
 		Car car = availableCars.get((int)(Math.random()*availableCars.size()));
 		
 		Reservation res = new Reservation(quote, car.getId());
-		System.out.println("RESERVATION SUCCEEDED");
 		car.addReservation(res);
 		return res;
 	}

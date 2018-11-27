@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 
 import ds.gae.entities.Car;
 import ds.gae.entities.CarRentalCompany;
@@ -46,7 +47,7 @@ public class CarRentalModel {
 		}
 		finally {manager.close();}
     	
-    	return null;
+    	return out;
 	}
 
     /**
@@ -84,7 +85,7 @@ public class CarRentalModel {
     	EntityManager manager = EMF.get().createEntityManager();
     	Quote out = null;
     	try {
-    		CarRentalCompany crc = manager.find(CarRentalCompany.class, company);
+    		CarRentalCompany crc = (CarRentalCompany) manager.createNamedQuery("findCrc").setParameter("name", company).getResultList().get(0);
             if (crc != null) {
                 out = crc.createQuote(constraints, renterName);
             } else {
@@ -108,7 +109,7 @@ public class CarRentalModel {
 	public void confirmQuote(Quote q) throws ReservationException {
 		EntityManager manager = EMF.get().createEntityManager();
 		try {
-			CarRentalCompany crc = manager.find(CarRentalCompany.class, q.getRentalCompany());
+			CarRentalCompany crc = (CarRentalCompany) manager.createNamedQuery("findCrc").setParameter("name", q.getRentalCompany()).getResultList().get(0);
 	        crc.confirmQuote(q);
 		}
 		finally {manager.close();}
@@ -126,8 +127,23 @@ public class CarRentalModel {
 	 * 			Therefore none of the given quotes is confirmed.
 	 */
     public List<Reservation> confirmQuotes(List<Quote> quotes) throws ReservationException {    	
-		// TODO add implementation
-    	return null;
+    	EntityManager manager = EMF.get().createEntityManager();
+    	EntityTransaction tx = manager.getTransaction();
+    	tx.begin();
+    	List<Reservation> reservations = new ArrayList<Reservation>();
+		try {
+			for (Quote q : quotes) {
+				CarRentalCompany crc = (CarRentalCompany) manager.createNamedQuery("findCrc").setParameter("name", q.getRentalCompany()).getResultList().get(0);
+		        Reservation res = crc.confirmQuote(q);
+		        reservations.add(res);
+			}
+			tx.commit();
+		}
+		catch (ReservationException e) {
+			tx.rollback();
+		}
+		finally {manager.close();}
+		return reservations;
     }
 	
 	/**
@@ -178,10 +194,20 @@ public class CarRentalModel {
      * @return	A list of car IDs of cars with the given car type.
      */
     public Collection<Integer> getCarIdsByCarType(String crcName, CarType carType) {
-    	Collection<Integer> out = new ArrayList<Integer>();
-    	for (Car c : getCarsByCarType(crcName, carType)) {
-    		out.add(c.getId());
-    	}
+    	Set<Integer> out = new HashSet<Integer>();
+		
+		EntityManager manager = EMF.get().createEntityManager();
+		try {
+			Set<Car> cars = (Set<Car>)(manager.createNamedQuery("getCarsOfCompany").setParameter("name", crcName).getResultList().get(0));
+			for (Car car : cars) {
+				CarType type = (CarType)(manager.createNamedQuery("getTypeOfId").setParameter("id", car.getType()).getResultList().get(0));
+				if (type.getName().equals(carType.getName())) {
+					out.add(car.getId());
+				}
+			}
+		}
+		finally {manager.close();}
+    	
     	return out;
     }
     
@@ -208,17 +234,21 @@ public class CarRentalModel {
 	 * @return	List of cars of the given car type
 	 */
 	private List<Car> getCarsByCarType(String crcName, CarType carType) {				
-		// FIXME: use persistence instead
-
-		List<Car> out = new ArrayList<Car>(); 
-		for(CarRentalCompany crc : CRCS.values()) {
-			for (Car c : crc.getCars()) {
-//				if (c.getType() == carType) { 
-//					out.add(c);
-//				}
+		List<Car> out = new ArrayList<Car>();
+		
+		EntityManager manager = EMF.get().createEntityManager();
+		try {
+			List<Car> cars = new ArrayList<Car>((Set<Car>)(manager.createNamedQuery("getCarsOfCompany").setParameter("name", crcName).getResultList().get(0)));
+			for (Car car : cars) {
+				CarType type = (CarType)(manager.createNamedQuery("getTypeOfId").setParameter("id", car.getType()).getResultList().get(0));
+				if (type.getName().equals(carType.getName())) {
+					out.add(car);
+				}
 			}
 		}
-		return out;
+		finally {manager.close();}
+    	
+    	return out;
 	}
 
 	/**

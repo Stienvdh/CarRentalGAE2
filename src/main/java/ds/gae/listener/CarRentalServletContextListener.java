@@ -15,6 +15,7 @@ import javax.servlet.ServletContextListener;
 
 import ds.gae.CarRentalModel;
 import ds.gae.EMF;
+import ds.gae.entities.Agency;
 import ds.gae.entities.Car;
 import ds.gae.entities.CarRentalCompany;
 import ds.gae.entities.CarType;
@@ -39,34 +40,46 @@ public class CarRentalServletContextListener implements ServletContextListener {
 	}
 	
 	private void addDummyData() {
-		loadRental("Hertz","hertz.csv");
-        loadRental("Dockx","dockx.csv");
-	}
-	
-	private void loadRental(String name, String datafile) {
-		Logger.getLogger(CarRentalServletContextListener.class.getName()).log(Level.INFO, "loading {0} from file {1}", new Object[]{name, datafile});
-		EntityManager manager = EMF.get().createEntityManager();
-		System.out.println("COMPANY AAN HET LADEN");
+		Set<CarRentalCompany> companies = new HashSet<CarRentalCompany>();
+		
+		CarRentalCompany company1 = loadRental("Hertz","hertz.csv");
+		CarRentalCompany company2 = loadRental("Dockx","dockx.csv");
+		
+		companies.add(company1);
+		companies.add(company2);
+        
+        EntityManager manager = EMF.get().createEntityManager();
         try {
-            Set<Car> cars = loadData(name, datafile);
-            CarRentalCompany company = new CarRentalCompany(name, cars, carTypes);
-            
-    		manager.persist(company);
-
-        } catch (NumberFormatException ex) {
-            Logger.getLogger(CarRentalServletContextListener.class.getName()).log(Level.SEVERE, "bad file", ex);
-        } catch (IOException ex) {
-            Logger.getLogger(CarRentalServletContextListener.class.getName()).log(Level.SEVERE, null, ex);
+        	Agency agency = new Agency(companies);
+        	manager.persist(agency);
         }
         finally {
         	manager.close();
         }
 	}
 	
+	private CarRentalCompany loadRental(String name, String datafile) {
+		Logger.getLogger(CarRentalServletContextListener.class.getName()).log(Level.INFO, "loading {0} from file {1}", new Object[]{name, datafile});
+		CarRentalCompany company = null;
+		
+		//EntityManager manager = EMF.get().createEntityManager();
+		
+        try {
+            Set<Car> cars = loadData(name, datafile);
+            company = new CarRentalCompany(name, cars, carTypes);
+            //manager.persist(company);
+        } catch (NumberFormatException ex) {
+            Logger.getLogger(CarRentalServletContextListener.class.getName()).log(Level.SEVERE, "bad file", ex);
+        } catch (IOException ex) {
+            Logger.getLogger(CarRentalServletContextListener.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally { } //manager.close();
+        return company;
+	}
+	
 	private static Set<CarType> carTypes;
 	
 	public static Set<Car> loadData(String name, String datafile) throws NumberFormatException, IOException {
-		// FIXME: adapt the implementation of this method to your entity structure
 		carTypes = new HashSet<CarType>();
 		Set<Car> cars = new HashSet<Car>();
 		int carId = 1;
