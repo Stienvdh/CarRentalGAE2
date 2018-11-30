@@ -1,5 +1,6 @@
 package ds.gae;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,14 +13,17 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
 import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.Queue;
 
 import ds.gae.entities.Car;
 import ds.gae.entities.CarRentalCompany;
 import ds.gae.entities.CarType;
+import ds.gae.entities.ConfirmStatus;
 import ds.gae.entities.Quote;
 import ds.gae.entities.Reservation;
 import ds.gae.entities.ReservationConstraints;
+import ds.gae.entities.ConfirmStatus.Status;
  
 public class CarRentalModel {
 	
@@ -128,8 +132,34 @@ public class CarRentalModel {
 	 * 			One of the quotes cannot be confirmed. 
 	 * 			Therefore none of the given quotes is confirmed.
 	 */
-    public List<Reservation> confirmQuotes(List<Quote> quotes) throws ReservationException {    	
+    public void confirmQuotes(List<Quote> quotes) throws ReservationException {    	
+    	
     	EntityManager manager = EMF.get().createEntityManager();
+    	
+    	if (quotes == null || quotes.isEmpty()) {
+    		return;
+    	}
+    	
+    	try {
+    		// entry aanmaken
+    		ConfirmStatus entry = new ConfirmStatus(quotes.get(0).getCarRenter(), quotes, Status.Confirmed);
+    		manager.persist(entry);
+    		ConfirmationPayload payload = new ConfirmationPayload(quotes, entry.getKey());
+    		//payload aanmaken
+    		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    		try {
+    			ObjectOutputStream objectStream = new ObjectOutputStream(stream);
+    			objectStream.writeObject(payload);
+    		} catch (IOException e) {
+    			e.printStackTrace();
+    		}
+    		queue.add(
+    			TaskOptions.Builder.withUrl("/worker").payload(stream.toByteArray()));
+    		
+    	} finally {
+    		manager.close();
+    	}
+    	/*EntityManager manager = EMF.get().createEntityManager();
     	EntityTransaction tx = manager.getTransaction();
     	tx.begin();
     	List<Reservation> reservations = new ArrayList<Reservation>();
@@ -145,7 +175,7 @@ public class CarRentalModel {
 			tx.rollback();
 		}
 		finally {manager.close();}
-		return reservations;
+		return reservations;*/
     }
 	
 	/**
