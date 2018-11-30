@@ -11,6 +11,9 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.Queue;
+
 import ds.gae.entities.Car;
 import ds.gae.entities.CarRentalCompany;
 import ds.gae.entities.CarType;
@@ -19,6 +22,8 @@ import ds.gae.entities.Reservation;
 import ds.gae.entities.ReservationConstraints;
  
 public class CarRentalModel {
+	
+	private static Queue queue = QueueFactory.getDefaultQueue();
 	
 	public Map<String,CarRentalCompany> CRCS = new HashMap<String, CarRentalCompany>();	
 	
