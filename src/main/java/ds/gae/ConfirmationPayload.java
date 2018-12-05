@@ -10,9 +10,9 @@ import ds.gae.entities.Quote;
 public class ConfirmationPayload implements Serializable {
 	
 	private List<Quote> quotes;
-	private Key confirmationStatusKey;
+	private String confirmationStatusKey;
 	
-	public ConfirmationPayload(List<Quote> quotes, Key key) {
+	public ConfirmationPayload(List<Quote> quotes, String key) {
 		this.quotes = quotes;
 		this.confirmationStatusKey = key;
 	}
@@ -21,7 +21,7 @@ public class ConfirmationPayload implements Serializable {
 		return this.quotes;
 	}
 	
-	public Key getConfirmationStatusKey() {
+	public String getConfirmationStatusKey() {
 		return this.confirmationStatusKey;
 	}
 	

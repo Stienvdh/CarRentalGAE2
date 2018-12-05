@@ -5,11 +5,6 @@
 		<delete file="${zip.filename}" quiet="true"/>
 		<zip destfile="${zip.filename}" update="false">
 			<zipfileset dir="src" prefix="src"/>
-			<zipfileset dir="war" prefix="war">
-				<exclude name="WEB-INF/lib/**"/>
-				<exclude name="WEB-INF/classes/**"/>
-				<exclude name="WEB-INF/appengine-generated/**" />
-			</zipfileset>
 			<zipfileset dir="." includes="build.xml" />
 			<fileset dir="." casesensitive="no">
 			  <include name="*.txt"/>

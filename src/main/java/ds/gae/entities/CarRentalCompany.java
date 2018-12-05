@@ -180,7 +180,7 @@ public class CarRentalCompany implements Serializable {
 		if(availableCars.isEmpty())
 			throw new ReservationException("Reservation failed, all cars of type " + quote.getCarType()
 	                + " are unavailable from " + quote.getStartDate() + " to " + quote.getEndDate());
-		Car car = availableCars.get((int)(Math.random()*availableCars.size()));
+		Car car = availableCars.get(0);
 		
 		Reservation res = new Reservation(quote, car.getId());
 		car.addReservation(res);

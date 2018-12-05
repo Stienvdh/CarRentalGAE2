@@ -1,29 +1,31 @@
 package ds.gae.entities;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 import com.google.appengine.api.datastore.Key;
 
+@Entity
 public class ConfirmStatus implements Serializable {
 	
-	private List<Quote> quotes;
 	private Status status;
-	@Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Key key;
+	@Id private String key;
 	private String renter;
 	
 	public ConfirmStatus(String renter, List<Quote> quotes, Status status) {
 		this.renter = renter;
-		this.quotes = quotes;
-		this.status = status;		
-	}
-	
-	public List<Quote> getQuotes() {
-		return this.quotes;
+		this.status = status;
+		String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
+		this.key = timeStamp;
 	}
 	
 	public Status getStatus() {
@@ -34,15 +36,13 @@ public class ConfirmStatus implements Serializable {
 		return this.renter;
 	}
 	
-	public Key getKey() {
+	public String getKey() {
 		return this.key;
 	}
 	
 	public void setStatus(Status status) {
 		this.status = status;
 	}
-	
-	
 	
 	public enum Status {
 		Confirmed, Approved, Cancelled;

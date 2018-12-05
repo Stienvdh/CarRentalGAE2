@@ -13,6 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
 import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.RetryOptions;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.Queue;
 
@@ -144,6 +145,7 @@ public class CarRentalModel {
     		// entry aanmaken
     		ConfirmStatus entry = new ConfirmStatus(quotes.get(0).getCarRenter(), quotes, Status.Confirmed);
     		manager.persist(entry);
+    		System.out.println("key: "+entry.getKey());
     		ConfirmationPayload payload = new ConfirmationPayload(quotes, entry.getKey());
     		//payload aanmaken
     		ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -153,8 +155,9 @@ public class CarRentalModel {
     		} catch (IOException e) {
     			e.printStackTrace();
     		}
+    		RetryOptions options = RetryOptions.Builder.withTaskRetryLimit(0);
     		queue.add(
-    			TaskOptions.Builder.withUrl("/worker").payload(stream.toByteArray()));
+    			TaskOptions.Builder.withUrl("/worker").payload(stream.toByteArray()).retryOptions(options));
     		
     	} finally {
     		manager.close();
