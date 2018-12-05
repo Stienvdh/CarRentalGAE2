@@ -27,7 +27,6 @@ public class Worker extends HttpServlet {
 			// hier nog confirmation status ophalen en updaten
 			ObjectInputStream stream = new ObjectInputStream(req.getInputStream());
 			ConfirmationPayload payload = (ConfirmationPayload) stream.readObject();
-			System.out.println("payload: "+payload.getConfirmationStatusKey());
 			status = manager.find(ConfirmStatus.class, payload.getConfirmationStatusKey());
 			
 			// confirm request
